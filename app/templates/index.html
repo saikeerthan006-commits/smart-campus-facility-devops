@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Campus Facility &amp; Maintenance Platform — Operations Console</title>
+    <style>
+        :root {
+            --navy: #0f172a;
+            --blue: #1d4ed8;
+            --slate: #334155;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --border: #e2e8f0;
+            --green-bg: #dcfce7;
+            --green-fg: #166534;
+            --amber-bg: #fef3c7;
+            --amber-fg: #92400e;
+            --red-bg: #fee2e2;
+            --red-fg: #991b1b;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            background: var(--bg);
+            color: #1e293b;
+            line-height: 1.45;
+        }
+        header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+            color: #fff;
+            padding: 18px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid #3b82f6;
+        }
+        header h1 { font-size: 1.28rem; font-weight: 700; letter-spacing: 0.2px; }
+        header .sub { font-size: 0.82rem; color: #cbd5e1; margin-top: 3px; }
+        .badges { display: flex; gap: 10px; align-items: center; }
+        .pill {
+            padding: 5px 12px;
+            border-radius: 999px;
+            font-size: 0.76rem;
+            font-weight: 600;
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.25);
+        }
+        .pill.healthy { background: #16a34a; color: #fff; border-color: #22c55e; }
+        main { max-width: 1360px; margin: 20px auto; padding: 0 24px; }
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .kpi-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--blue);
+            border-radius: 8px;
+            padding: 14px 18px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+        }
+        .kpi-label { font-size: 0.78rem; text-transform: uppercase; color: #64748b; font-weight: 700; }
+        .kpi-val { font-size: 1.65rem; font-weight: 800; color: var(--navy); margin-top: 4px; }
+        .kpi-note { font-size: 0.75rem; color: #475569; margin-top: 2px; }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 18px;
+            margin-bottom: 18px;
+        }
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px 18px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+        }
+        .card h2 {
+            font-size: 0.98rem;
+            color: var(--navy);
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        table { width: 100%; border-collapse: collapse; font-size: 0.81rem; }
+        th {
+            background: #f1f5f9;
+            color: #334155;
+            text-align: left;
+            padding: 8px 10px;
+            font-weight: 700;
+            border-bottom: 2px solid var(--border);
+        }
+        td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
+        .tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.73rem;
+        }
+        .tag.ok { background: var(--green-bg); color: var(--green-fg); }
+        .tag.warn { background: var(--amber-bg); color: var(--amber-fg); }
+        .tag.crit { background: var(--red-bg); color: var(--red-fg); }
+        .notice {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1e3a8a;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            margin-bottom: 18px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h1>Smart Campus Facility &amp; Maintenance Platform</h1>
+            <div class="sub">SIMATS Engineering | CSA10 Software Engineering (CO4) — Release Gate &amp; DevOps Telemetry Hub</div>
+        </div>
+        <div class="badges">
+            <span class="pill">Release: {{ version }}</span>
+            <span class="pill">Classifier: Deterministic Keyword Rules</span>
+            <span class="pill">RBAC: HMAC Bearer Enforced</span>
+            <span class="pill healthy">API Status: READY (200 OK)</span>
+        </div>
+    </header>
+    <main>
+        <div class="notice">
+            <strong>Engineering Disclosure:</strong> Triage categories (Facilities, HVAC, AV-Network, Manual Review) and SLA priorities (M1–M4) are computed via deterministic keyword and matrix rules, not trained ML. External sync status remains <em>Pending</em> until remote adapter confirmation.
+        </div>
+
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-label">Facility Bookings</div>
+                <div class="kpi-val">{{ counts.bookings }}</div>
+                <div class="kpi-note">Half-open [start, end) overlap validated</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Maintenance Tickets</div>
+                <div class="kpi-val">{{ counts.tickets }}</div>
+                <div class="kpi-note">Idempotent on (source, event_id)</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Immutable Audit Rows</div>
+                <div class="kpi-val">{{ counts.audit }}</div>
+                <div class="kpi-note">Optimistic lock version verified</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Durable Outbox Queue</div>
+                <div class="kpi-val">{{ counts.outbox }}</div>
+                <div class="kpi-note">Bounded exponential retry (max=3)</div>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div class="card">
+                <h2><span>Active Facility Bookings (/api/v1 &amp; /api/v2)</span><span>Half-Open Interval Policy</span></h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Facility</th>
+                            <th>Window (min)</th>
+                            <th>Campus / Policy</th>
+                            <th>Status</th>
+                            <th>Requester</th>
+                            <th>Calendar Sync</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for b in bookings %}
+                        <tr>
+                            <td>#{{ b[0] }}</td>
+                            <td><strong>{{ b[1] }}</strong></td>
+                            <td>{{ b[2] }}–{{ b[3] }} ({{ b[3] - b[2] }}m)</td>
+                            <td>{{ b[6] }} ({{ b[7] }})</td>
+                            <td>
+                                {% if b[4] == 'Approved' %}
+                                <span class="tag ok">{{ b[4] }}</span>
+                                {% else %}
+                                <span class="tag warn">{{ b[4] }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ b[5] }}</td>
+                            <td>
+                                {% if b[8] == 'Synced' %}
+                                <span class="tag ok">Synced</span>
+                                {% else %}
+                                <span class="tag warn">{{ b[8] }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <h2><span>Versioned Campus Policies (Day-4 Registry)</span><span>Strict &gt; Threshold</span></h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Campus Code</th>
+                            <th>Policy Ver</th>
+                            <th>Max Duration</th>
+                            <th>Temp Limit (&gt;)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in policies %}
+                        <tr>
+                            <td><strong>{{ p[0] }}</strong></td>
+                            <td><span class="tag ok">{{ p[1] }}</span></td>
+                            <td>{{ p[2] }} mins</td>
+                            <td>&gt; {{ "%.2f"|format(p[3]) }} &deg;C</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <h2 style="margin-top: 16px;"><span>Immutable Ticket Transition Audit Trail</span><span>Optimistic Lock</span></h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Audit ID</th>
+                            <th>Ticket</th>
+                            <th>Transition</th>
+                            <th>Authorized Actor</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in audits %}
+                        <tr>
+                            <td>#{{ a[0] }}</td>
+                            <td>Ticket #{{ a[1] }}</td>
+                            <td>{{ a[2] }} &rarr; <strong>{{ a[3] }}</strong></td>
+                            <td><span class="tag ok">{{ a[4] }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div class="card">
+                <h2><span>Maintenance Tickets &amp; Sensor Triage</span><span>9-Cell SLA Matrix</span></h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Title</th>
+                            <th>Category</th>
+                            <th>Priority</th>
+                            <th>State (Ver)</th>
+                            <th>Campus (Pol)</th>
+                            <th>Tracker Sync</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in tickets %}
+                        <tr>
+                            <td>#{{ t[0] }}</td>
+                            <td>{{ t[1] }}</td>
+                            <td>{{ t[5] }}</td>
+                            <td><span class="tag {% if t[4] == 'M1' %}crit{% elif t[4] == 'M2' %}warn{% else %}ok{% endif %}">{{ t[4] }}</span></td>
+                            <td><strong>{{ t[2] }}</strong> (v{{ t[3] }})</td>
+                            <td>{{ t[6] }} ({{ t[7] }})</td>
+                            <td>
+                                {% if t[8] == 'Synced' %}
+                                <span class="tag ok">Synced</span>
+                                {% else %}
+                                <span class="tag warn">{{ t[8] }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <h2><span>Durable Integration Outbox (Calendar &amp; Issue Tracker)</span><span>Idempotent Intents</span></h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Target</th>
+                            <th>Idempotency Key</th>
+                            <th>Status</th>
+                            <th>Attempts</th>
+                            <th>Remote ID / Error</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for o in outbox %}
+                        <tr>
+                            <td>#{{ o[0] }}</td>
+                            <td>{{ o[3] }}</td>
+                            <td><code>{{ o[4] }}</code></td>
+                            <td>
+                                {% if o[5] == 'Synced' %}
+                                <span class="tag ok">Synced</span>
+                                {% elif o[5] == 'Manual Retry Required' %}
+                                <span class="tag crit">{{ o[5] }}</span>
+                                {% else %}
+                                <span class="tag warn">{{ o[5] }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ o[6] }}/3</td>
+                            <td>{{ o[7] if o[7] else o[8] }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

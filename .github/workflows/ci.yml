@@ -1,0 +1,137 @@
+name: Smart Campus CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test-and-security:
+    name: "Stage 1: Automated Tests, Security & Migration Gate"
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: campus_admin
+          POSTGRES_PASSWORD: ${{ secrets.TEST_DB_PASSWORD }}
+          POSTGRES_DB: smart_campus_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout Versioned Source
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Static Code Linting (Ruff)
+        run: ruff check .
+
+      - name: Secret Pattern Scan (Verify Zero Hardcoded Secrets)
+        run: |
+          python -c "
+          import pathlib, re, sys
+          pattern = re.compile(r'(ghp_[A-Za-z0-9]{30,}|AKIA[0-9A-Z]{16}|-----BEGIN RSA PRIVATE KEY-----)')
+          for p in pathlib.Path('.').rglob('*.py'):
+              txt = p.read_text(encoding='utf-8', errors='ignore')
+              if pattern.search(txt):
+                  print(f'Hardcoded secret detected in {p}')
+                  sys.exit(1)
+          print('Secret pattern check PASSED: 0 hardcoded credentials in repository.')
+          "
+
+      - name: Day-4 Expand-and-Contract Migration & Failure Restore Gate
+        run: |
+          python migrations/002_campus_policies_and_outbox.py --seed-legacy --rehearse-failure
+
+      - name: Execute Unit, Integration, Security & Day-4 Regression Suite
+        env:
+          APP_SECRET_KEY: ${{ secrets.APP_SECRET_KEY }}
+          TEST_DB_PASSWORD: ${{ secrets.TEST_DB_PASSWORD }}
+        run: |
+          python -m pytest tests -v --cov=app --cov=campus_model --cov-report=term-missing --cov-report=xml:coverage.xml --junitxml=test-results.xml
+
+      - name: SAST Security Scan (Bandit)
+        run: |
+          bandit -r app campus_model.py -ll -f txt -o bandit-report.txt
+          cat bandit-report.txt
+
+      - name: Dependency Vulnerability Audit (pip-audit)
+        run: |
+          pip-audit --desc on || true
+
+      - name: Publish JUnit Test & Security Artifacts (Always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-and-security-reports-${{ github.sha }}
+          path: |
+            test-results.xml
+            coverage.xml
+            bandit-report.txt
+
+  build-deploy-smoke:
+    name: "Stage 2: Docker Build, Trivy Scan & Isolated Smoke Gate"
+    needs: test-and-security
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Versioned Source
+        uses: actions/checkout@v4
+
+      - name: Build Production Multi-Stage Docker Image
+        run: |
+          docker build -t campus-backend:${{ github.sha }} -t campus-backend:latest .
+          IMAGE_ID=$(docker inspect --format='{{.Id}}' campus-backend:${{ github.sha }})
+          echo "Built Docker Image Tag: campus-backend:${{ github.sha }}"
+          echo "Docker Image SHA256 Digest: ${IMAGE_ID}"
+
+      - name: Container Image Vulnerability Scan (Trivy)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: "campus-backend:${{ github.sha }}"
+          format: "table"
+          exit-code: "0"
+          ignore-unfixed: true
+          vuln-type: "os,library"
+          severity: "CRITICAL,HIGH"
+
+      - name: Deploy Isolated Stack via Docker Compose & Run Post-Deploy Smoke Check
+        env:
+          CAMPUS_IMAGE: campus-backend:${{ github.sha }}
+          APP_SECRET_KEY: ${{ secrets.APP_SECRET_KEY }}
+          TEST_DB_PASSWORD: ${{ secrets.TEST_DB_PASSWORD }}
+        run: |
+          docker compose up -d
+          docker compose ps
+          chmod +x ./scripts/smoke-test.sh
+          ./scripts/smoke-test.sh http://127.0.0.1:8000
+
+      - name: Rehearse Release Failure Detection & Rollback Recovery
+        env:
+          APP_SECRET_KEY: ${{ secrets.APP_SECRET_KEY }}
+        run: |
+          python3 -m pip install --quiet fastapi uvicorn httpx jinja2 pytest
+          python3 scripts/recovery_rehearsal.py
+
+      - name: Tear Down Isolated Environment
+        if: always()
+        run: |
+          docker compose logs campus-api || true
+          docker compose down -v

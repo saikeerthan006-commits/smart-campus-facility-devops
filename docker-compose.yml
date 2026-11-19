@@ -1,0 +1,43 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: campus-postgres
+    environment:
+      POSTGRES_USER: campus_admin
+      POSTGRES_PASSWORD: ${TEST_DB_PASSWORD:-CampusTestDbPass2026!}
+      POSTGRES_DB: smart_campus_db
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U campus_admin -d smart_campus_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  campus-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ${CAMPUS_IMAGE:-campus-backend:latest}
+    container_name: campus-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      APP_SECRET_KEY: ${APP_SECRET_KEY:-CampusSuperSecretSigningKey2026_CSA10_CO4!}
+      DATABASE_URL: sqlite:////app/data/campus_platform.db
+      EXTERNAL_SYNC_FAIL: ${EXTERNAL_SYNC_FAIL:-false}
+      APP_VERSION: ${APP_VERSION:-v1.0.0}
+      SIMULATE_BROKEN_RELEASE: ${SIMULATE_BROKEN_RELEASE:-false}
+    ports:
+      - "8000:8000"
+    volumes:
+      - campus_data:/app/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ready')"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  campus_data:
