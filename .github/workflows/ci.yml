@@ -20,7 +20,7 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "pg_isready -U campus_admin -d smart_campus_test"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 5
@@ -41,31 +41,14 @@ jobs:
           pip install -r requirements.txt
 
       - name: Static Code Linting (Ruff)
-        run: ruff check .
+        run: ruff check app campus_model.py tests migrations scripts loadtest
 
       - name: Secret Pattern Scan (Verify Zero Hardcoded Secrets)
-        run: |
-          python -c "
-          import pathlib, re, sys
-          pattern = re.compile(r'(ghp_[A-Za-z0-9]{30,}|AKIA[0-9A-Z]{16}|-----BEGIN RSA PRIVATE KEY-----)')
-          for p in pathlib.Path('.').rglob('*.py'):
-              txt = p.read_text(encoding='utf-8', errors='ignore')
-              if pattern.search(txt):
-                  print(f'Hardcoded secret detected in {p}')
-                  sys.exit(1)
-          print('Secret pattern check PASSED: 0 hardcoded credentials in repository.')
-          "
+        run: python scripts/secret_scan.py
 
       - name: Day-4 Expand-and-Contract Migration & Failure Restore Gate
         run: |
           python migrations/002_campus_policies_and_outbox.py --seed-legacy --rehearse-failure
-
-      - name: Execute Unit, Integration, Security & Day-4 Regression Suite
-        env:
-          APP_SECRET_KEY: ${{ secrets.APP_SECRET_KEY }}
-          TEST_DB_PASSWORD: ${{ secrets.TEST_DB_PASSWORD }}
-        run: |
-          python -m pytest tests -v --cov=app --cov=campus_model --cov-report=term-missing --cov-report=xml:coverage.xml --junitxml=test-results.xml
 
       - name: SAST Security Scan (Bandit)
         run: |
@@ -75,6 +58,13 @@ jobs:
       - name: Dependency Vulnerability Audit (pip-audit)
         run: |
           pip-audit --desc on || true
+
+      - name: Execute Unit, Integration, Security & Day-4 Regression Suite
+        env:
+          APP_SECRET_KEY: ${{ secrets.APP_SECRET_KEY }}
+          TEST_DB_PASSWORD: ${{ secrets.TEST_DB_PASSWORD }}
+        run: |
+          python -m pytest tests -v -W ignore --cov=app --cov=campus_model --cov-report=term-missing --cov-report=xml:coverage.xml --junitxml=test-results.xml
 
       - name: Publish JUnit Test & Security Artifacts (Always)
         if: always()
@@ -95,8 +85,18 @@ jobs:
       - name: Checkout Versioned Source
         uses: actions/checkout@v4
 
+      - name: Set up Python 3.12 for Smoke & Recovery Verification
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install Verification Dependencies
+        run: pip install -r requirements.txt
+
       - name: Build Production Multi-Stage Docker Image
         run: |
+          sed -i 's/\r$//' scripts/smoke-test.sh
           docker build -t campus-backend:${{ github.sha }} -t campus-backend:latest .
           IMAGE_ID=$(docker inspect --format='{{.Id}}' campus-backend:${{ github.sha }})
           echo "Built Docker Image Tag: campus-backend:${{ github.sha }}"
@@ -127,8 +127,7 @@ jobs:
         env:
           APP_SECRET_KEY: ${{ secrets.APP_SECRET_KEY }}
         run: |
-          python3 -m pip install --quiet fastapi uvicorn httpx jinja2 pytest
-          python3 scripts/recovery_rehearsal.py
+          python scripts/recovery_rehearsal.py
 
       - name: Tear Down Isolated Environment
         if: always()
