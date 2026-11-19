@@ -1,4 +1,4 @@
-"""Compact test model and core domain rules of the Smart Campus Facility Platform (Python + SQLite).
+﻿"""Compact test model and core domain rules of the Smart Campus Facility Platform (Python + SQLite).
 Note: Classification uses deterministic keyword matching rules (not trained machine learning).
 """
 from datetime import datetime, timedelta, timezone
@@ -85,7 +85,7 @@ def breached(value: float, campus_code: str = "MAIN_CAMPUS") -> bool:
     if campus_code not in CAMPUS_POLICIES:
         raise ValueError(f"unknown campus_code: {campus_code}")
     limit = TEMP_LIMIT if campus_code == "MAIN_CAMPUS" else CAMPUS_POLICIES[campus_code]["temp_limit"]
-    return value > limit
+    return value >= limit
 
 
 def valid_duration(minutes: int, campus_code: str = "MAIN_CAMPUS") -> bool:
