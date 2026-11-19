@@ -1,0 +1,20 @@
+================================================================================
+BOUNDED LOAD, SENSOR REPLAY BURST & DEPENDENCY OUTAGE EXPERIMENT (TASK 5 / Q5)
+================================================================================
+Host Environment : Windows 11 (10.0.26200)
+Python Runtime   : Python 3.13.9 | Logical CPU Cores: 16
+Endpoint Mix     : 25% GET /ready, 25% POST /api/v2/bookings, 25% POST /api/v1/tickets, 25% GET /api/v2/bookings
+--------------------------------------------------------------------------------
+STAGE 1: 10 Concurrent Synthetic Clients (120 requests)
+  -> Duration: 0.619s | Throughput: 193.84 req/s | p50: 47.79 ms | p95: 91.07 ms | p99: 132.3 ms | 5xx Errors: 0
+STAGE 2: 25 Concurrent Synthetic Clients (250 requests)
+  -> Duration: 1.434s | Throughput: 174.33 req/s | p50: 127.87 ms | p95: 288.78 ms | p99: 337.97 ms | 5xx Errors: 0
+STAGE 3: 50 Concurrent Synthetic Clients (400 requests)
+  -> Duration: 3.442s | Throughput: 116.21 req/s | p50: 360.47 ms | p95: 825.99 ms | p99: 993.35 ms | 5xx Errors: 0
+STAGE 4: Sensor Replay Burst (50 concurrent sensor alerts: 25 duplicates + 25 unique)
+  -> Duration: 0.498s | Throughput: 100.38 req/s | p50: 363.06 ms | p95: 470.82 ms
+  -> Idempotency Verification: Expected 26 new tickets, Observed 26 new tickets (0 duplicate leaks)
+STAGE 5: Dependency Unavailable Mode (EXTERNAL_SYNC_FAIL=true, 15 concurrent clients, 90 requests)
+  -> Duration: 0.77s | Throughput: 116.81 req/s | p50: 111.71 ms | p95: 212.44 ms | 5xx Errors: 0
+  -> Outbox Queue Depth: 46 Pending retry intents preserved locally, 411 previously Synced
+================================================================================

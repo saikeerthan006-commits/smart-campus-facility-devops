@@ -1,0 +1,20 @@
+﻿[SEED] Created pre-Day-4 legacy database at C:\Users\saike\.gemini\antigravity\scratch\smart-campus-facility-devops\day4_migration_rehearsal.db
+[REHEARSAL-FAIL-GATE] Status: MIGRATION_ABORTED_AND_RESTORED | Reason: Simulated mid-migration verification gate failure (row invariant abort)
+[REHEARSAL-RESTORE] Pre-counts: {'bookings': 3, 'tickets': 2, 'audit': 5} == Restored-counts: {'bookings': 3, 'tickets': 2, 'audit': 5}
+[MIGRATION-EXPAND-CONTRACT] Status: MIGRATION_SUCCESS
+[MIGRATION-VERIFY] Pre-counts:  {'bookings': 3, 'tickets': 2, 'audit': 5}
+[MIGRATION-VERIFY] Post-counts: {'bookings': 3, 'tickets': 2, 'audit': 5, 'policies': 2}
+============================= test session starts =============================
+platform win32 -- Python 3.13.9, pytest-8.4.2, pluggy-1.5.0 -- C:\Users\saike\anaconda3\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\saike\.gemini\antigravity\scratch\smart-campus-facility-devops
+plugins: anyio-4.10.0, cov-7.1.0, django-4.14.0
+collecting ... collected 5 items
+
+tests/test_day4_adaptation.py::test_day4_01_campus_specific_duration_and_sensor_thresholds PASSED [ 20%]
+tests/test_day4_adaptation.py::test_day4_02_expand_and_contract_migration_preserves_legacy_records PASSED [ 40%]
+tests/test_day4_adaptation.py::test_day4_03_v1_compatibility_and_v2_campus_policy_api PASSED [ 60%]
+tests/test_day4_adaptation.py::test_day4_04_durable_outbox_bounded_retry_and_recovery PASSED [ 80%]
+tests/test_day4_adaptation.py::test_day4_05_dashboard_health_ready_and_outbox_endpoints PASSED [100%]
+
+============================== 5 passed in 1.13s ==============================

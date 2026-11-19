@@ -1,0 +1,13 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.13.9, pytest-8.4.2, pluggy-1.5.0 -- C:\Users\saike\anaconda3\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\saike\.gemini\antigravity\scratch\smart-campus-facility-devops
+plugins: anyio-4.10.0, cov-7.1.0, django-4.14.0
+collecting ... collected 4 items
+
+tests/test_security_api.py::test_sec_01_student_spoofing_approver_in_json_body_rejected PASSED [ 25%]
+tests/test_security_api.py::test_sec_02_student_denied_restricted_facilities_and_tickets PASSED [ 50%]
+tests/test_security_api.py::test_sec_03_all_six_roles_permission_matrix PASSED [ 75%]
+tests/test_security_api.py::test_sec_04_tampered_or_missing_token_rejected PASSED [100%]
+
+============================== 4 passed in 1.10s ==============================

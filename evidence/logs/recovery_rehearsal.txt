@@ -1,0 +1,30 @@
+================================================================================
+REHEARSED FAILURE, DATABASE BACKUP & ROLLBACK RECOVERY TRANSCRIPT (TASK 5 / Q5)
+================================================================================
+
+[STEP A] Deployed Healthy Release: APP_VERSION=v1.0.0
+  -> Release Artifact Digest: sha256:ea9b953db516cad73380a6e6d83cb503cc788084c6c0f41eb6f4d33037e87d33
+  -> Readiness Check (/ready): HTTP 200 | {'status': 'ready', 'version': 'v1.0.0', 'database': 'connected', 'policies_loaded': 2, 'bookings_count': 0, 'tickets_count': 0, 'audit_count': 0}
+
+[STEP B] Seeded Synthetic Operational Dataset in v1.0.0:
+  -> Pre-Release Row Counts: {'bookings': 2, 'tickets': 1, 'audit': 3, 'policies': 2, 'integration_outbox': 3}
+  -> Verified Booking #1 status=Approved, Ticket #1 state=('Resolved', 4)
+
+[STEP C] Executed Pre-Deployment Database Backup (Point-in-Time Snapshot):
+  -> SQL Dump Artifact:   pre_release_v1.sql (3510 bytes, sha256:acf3c67c16e24142b3139548...)
+  -> SQLite Snapshot DB:  pre_release_v1.db (36864 bytes, sha256:192c7d514bf56323c5916494...)
+  -> Note: A Docker named volume is storage persistence, NOT a backup; off-volume dump verified.
+
+[STEP D] Deployed Deliberately Faulty Release: APP_VERSION=v2.0.0-broken (SIMULATE_BROKEN_RELEASE=true)
+  -> Automated Smoke Gate /health probe: HTTP 500 | {'detail': 'Simulated faulty release startup check failure'}
+  -> Automated Smoke Gate /ready probe:  HTTP 503 | {'detail': 'Simulated broken release readiness gate failure'}
+  -> [ALERT] Automated post-deployment smoke gate FAILED (HTTP 503). Initiating rollback procedure!
+
+[STEP E] Executed Rollback to Release v1.0.0 & Verified Database Snapshot Restoration:
+  -> Restored Release Artifact: APP_VERSION=v1.0.0 (sha256:ea9b953db516cad73380a6e6...)
+  -> Post-Rollback /ready Check: HTTP 200 | {'status': 'ready', 'version': 'v1.0.0', 'database': 'connected', 'policies_loaded': 2, 'bookings_count': 2, 'tickets_count': 1, 'audit_count': 3}
+  -> Post-Rollback Row Counts:   {'bookings': 2, 'tickets': 1, 'audit': 3, 'policies': 2, 'integration_outbox': 3}
+  -> Specific Record Verification: Booking #1='Approved', Booking #2='Pending' (RESEARCH_ANNEX v2), Ticket #1=('Resolved', v4)
+  -> Data Loss: 0 records lost (100% parity with pre-release snapshot)
+  -> Total Measured Recovery Duration (RTO): 0.0095 seconds
+================================================================================

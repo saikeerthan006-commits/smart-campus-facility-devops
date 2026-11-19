@@ -1,0 +1,85 @@
+{
+  "environment": {
+    "os": "Windows 11 (10.0.26200)",
+    "python": "3.13.9",
+    "cpu_cores": 16,
+    "processor": "AMD64 Family 26 Model 96 Stepping 0, AuthenticAMD",
+    "database_mode": "SQLite file-backed (WAL/serialized lock on single host)"
+  },
+  "stages": {
+    "stage_10_clients": {
+      "concurrency": 10,
+      "total_requests": 120,
+      "duration_s": 0.619,
+      "rps": 193.84,
+      "p50_ms": 47.79,
+      "p95_ms": 91.07,
+      "p99_ms": 132.3,
+      "mean_ms": 48.41,
+      "errors_5xx": 0,
+      "status_codes": {
+        "200": 60,
+        "201": 60
+      }
+    },
+    "stage_25_clients": {
+      "concurrency": 25,
+      "total_requests": 250,
+      "duration_s": 1.434,
+      "rps": 174.33,
+      "p50_ms": 127.87,
+      "p95_ms": 288.78,
+      "p99_ms": 337.97,
+      "mean_ms": 131.39,
+      "errors_5xx": 0,
+      "status_codes": {
+        "200": 125,
+        "201": 125
+      }
+    },
+    "stage_50_clients": {
+      "concurrency": 50,
+      "total_requests": 400,
+      "duration_s": 3.442,
+      "rps": 116.21,
+      "p50_ms": 360.47,
+      "p95_ms": 825.99,
+      "p99_ms": 993.35,
+      "mean_ms": 389.61,
+      "errors_5xx": 0,
+      "status_codes": {
+        "200": 200,
+        "201": 200
+      }
+    },
+    "sensor_replay_burst": {
+      "events_submitted": 50,
+      "duplicate_payloads": 25,
+      "unique_payloads": 25,
+      "expected_tickets_created": 26,
+      "actual_tickets_created": 26,
+      "duration_s": 0.498,
+      "rps": 100.38,
+      "p50_ms": 363.06,
+      "p95_ms": 470.82,
+      "p99_ms": 476.89
+    },
+    "dependency_outage_15_clients": {
+      "concurrency": 15,
+      "total_requests": 90,
+      "duration_s": 0.77,
+      "rps": 116.81,
+      "p50_ms": 111.71,
+      "p95_ms": 212.44,
+      "p99_ms": 263.94,
+      "mean_ms": 109.52,
+      "errors_5xx": 0,
+      "status_codes": {
+        "200": 44,
+        "201": 46
+      },
+      "pending_outbox_records": 46,
+      "synced_outbox_records": 411
+    }
+  }
+}

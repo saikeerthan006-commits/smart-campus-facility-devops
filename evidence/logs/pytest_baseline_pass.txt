@@ -1,0 +1,52 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.13.9, pytest-8.4.2, pluggy-1.5.0 -- C:\Users\saike\anaconda3\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\saike\.gemini\antigravity\scratch\smart-campus-facility-devops
+plugins: anyio-4.10.0, cov-7.1.0, django-4.14.0
+collecting ... collected 30 items
+
+tests/test_day4_adaptation.py::test_day4_01_campus_specific_duration_and_sensor_thresholds PASSED [  3%]
+tests/test_day4_adaptation.py::test_day4_02_expand_and_contract_migration_preserves_legacy_records PASSED [  6%]
+tests/test_day4_adaptation.py::test_day4_03_v1_compatibility_and_v2_campus_policy_api PASSED [ 10%]
+tests/test_day4_adaptation.py::test_day4_04_durable_outbox_bounded_retry_and_recovery PASSED [ 13%]
+tests/test_day4_adaptation.py::test_day4_05_dashboard_health_ready_and_outbox_endpoints PASSED [ 16%]
+tests/test_model.py::test_U1_high_high_is_M1 PASSED                      [ 20%]
+tests/test_model.py::test_U2_low_low_is_M4 PASSED                        [ 23%]
+tests/test_model.py::test_U3_impact_out_of_range PASSED                  [ 26%]
+tests/test_model.py::test_U4_water_leak_is_facilities PASSED             [ 30%]
+tests/test_model.py::test_U5_equal_evidence_manual PASSED                [ 33%]
+tests/test_model.py::test_U6_temperature_threshold PASSED                [ 36%]
+tests/test_model.py::test_U7_temperature_below_threshold_boundary PASSED [ 40%]
+tests/test_model.py::test_U8_booking_duration_boundaries PASSED          [ 43%]
+tests/test_model.py::test_U9_sla_deadline_and_equality_boundary PASSED   [ 46%]
+tests/test_model.py::test_U10_priority_matrix_all_nine_cells PASSED      [ 50%]
+tests/test_model.py::test_I1_commands_persist_and_audit PASSED           [ 53%]
+tests/test_model.py::test_I2_repeated_event_one_ticket PASSED            [ 56%]
+tests/test_model.py::test_I3_student_cannot_approve_booking PASSED       [ 60%]
+tests/test_model.py::test_I4_overlap_rejected_adjacent_allowed PASSED    [ 63%]
+tests/test_model.py::test_I5_fastapi_end_to_end_booking_ticket_audit_flow PASSED [ 66%]
+tests/test_model.py::test_I6_external_dependency_outage_preserves_local_pending PASSED [ 70%]
+tests/test_model.py::test_R1_high_medium_is_M2 PASSED                    [ 73%]
+tests/test_model.py::test_R2_unknown_terms_manual PASSED                 [ 76%]
+tests/test_model.py::test_R3_resolve_without_notes_rejected PASSED       [ 80%]
+tests/test_model.py::test_R4_stale_version_rejected PASSED               [ 83%]
+tests/test_model.py::test_R5_missing_ticket_title_rejected PASSED        [ 86%]
+tests/test_security_api.py::test_sec_01_student_spoofing_approver_in_json_body_rejected PASSED [ 90%]
+tests/test_security_api.py::test_sec_02_student_denied_restricted_facilities_and_tickets PASSED [ 93%]
+tests/test_security_api.py::test_sec_03_all_six_roles_permission_matrix PASSED [ 96%]
+tests/test_security_api.py::test_sec_04_tampered_or_missing_token_rejected PASSED [100%]
+
+- generated xml file: C:\Users\saike\.gemini\antigravity\scratch\smart-campus-facility-devops\evidence\logs\junit-baseline.xml -
+=============================== tests coverage ================================
+_______________ coverage: platform win32, python 3.13.9-final-0 _______________
+
+Name                  Stmts   Miss  Cover   Missing
+---------------------------------------------------
+app\__init__.py           0      0   100%
+app\auth.py              44      7    84%   24, 39-40, 55-56, 61, 67
+app\integrations.py      41      2    95%   50, 54
+app\main.py             213     55    74%   31-34, 43, 106, 120, 153-154, 221-224, 303-304, 322-323, 326, 383-384, 421-425, 467-472, 540, 571, 574-575, 580-583, 588-635
+campus_model.py         174     20    89%   73, 86, 94, 102, 109, 111, 118, 120, 175-176, 179-180, 269, 303, 320, 323, 326, 359, 385, 393
+---------------------------------------------------
+TOTAL                   472     84    82%
+============================= 30 passed in 2.70s ==============================

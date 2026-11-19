@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Smart Campus Facility Platform — Bounded Load Experiment Telemetry</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; padding: 24px 32px; }
+  h1 { font-size: 1.35rem; color: #38bdf8; margin-bottom: 4px; }
+  .sub { font-size: 0.85rem; color: #94a3b8; margin-bottom: 18px; }
+  .meta { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 12px 16px; margin-bottom: 18px; font-size: 0.84rem; display: flex; justify-content: space-between; }
+  table { width: 100%; border-collapse: collapse; background: #1e293b; border-radius: 8px; overflow: hidden; margin-bottom: 18px; font-size: 0.86rem; }
+  th { background: #1d4ed8; color: #fff; text-align: left; padding: 10px 14px; }
+  td { padding: 10px 14px; border-bottom: 1px solid #334155; }
+  .badge { background: #16a34a; color: #fff; padding: 3px 9px; border-radius: 999px; font-size: 0.75rem; font-weight: 700; }
+  .bars { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .box { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 14px 16px; }
+  .box h3 { font-size: 0.92rem; color: #93c5fd; margin-bottom: 10px; }
+  .bar-row { margin-bottom: 8px; font-size: 0.8rem; }
+  .bar-bg { background: #334155; height: 14px; border-radius: 4px; overflow: hidden; margin-top: 3px; }
+  .bar-fill { background: linear-gradient(90deg, #3b82f6, #38bdf8); height: 100%; }
+</style>
+</head>
+<body>
+  <h1>Smart Campus Facility Platform — Bounded Load &amp; Outage Telemetry Report</h1>
+  <div class="sub">Executed against live FastAPI/Uvicorn instance (http://127.0.0.1:8091) | SIMATS Engineering CSA10 Assignment 4 (Task 5)</div>
+  <div class="meta">
+    <span><strong>Host OS:</strong> Windows 11 (10.0.26200)</span>
+    <span><strong>Runtime:</strong> Python 3.13.9 (16 Logical Cores)</span>
+    <span><strong>Endpoint Mix:</strong> /ready, POST /api/v2/bookings, POST /api/v1/tickets, GET /api/v2/bookings</span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Workload Stage</th>
+        <th>Concurrent Clients</th>
+        <th>Total Requests</th>
+        <th>Duration (s)</th>
+        <th>Throughput (RPS)</th>
+        <th>p50 Latency</th>
+        <th>p95 Latency</th>
+        <th>p99 Latency</th>
+        <th>5xx Errors</th>
+        <th>Gate Result</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Stage 1 — Baseline Load</strong></td>
+        <td>10 clients</td>
+        <td>120</td>
+        <td>0.619 s</td>
+        <td><strong>193.84 req/s</strong></td>
+        <td>47.79 ms</td>
+        <td>91.07 ms</td>
+        <td>132.3 ms</td>
+        <td>0</td>
+        <td><span class="badge">PASS (0 Errors)</span></td>
+      </tr>
+      <tr>
+        <td><strong>Stage 2 — Medium Concurrency</strong></td>
+        <td>25 clients</td>
+        <td>250</td>
+        <td>1.434 s</td>
+        <td><strong>174.33 req/s</strong></td>
+        <td>127.87 ms</td>
+        <td>288.78 ms</td>
+        <td>337.97 ms</td>
+        <td>0</td>
+        <td><span class="badge">PASS (0 Errors)</span></td>
+      </tr>
+      <tr>
+        <td><strong>Stage 3 — Peak Bounded Concurrency</strong></td>
+        <td>50 clients</td>
+        <td>400</td>
+        <td>3.442 s</td>
+        <td><strong>116.21 req/s</strong></td>
+        <td>360.47 ms</td>
+        <td>825.99 ms</td>
+        <td>993.35 ms</td>
+        <td>0</td>
+        <td><span class="badge">PASS (0 Errors)</span></td>
+      </tr>
+      <tr>
+        <td><strong>Stage 4 — Sensor Replay Burst (25 dup + 25 uniq)</strong></td>
+        <td>50 burst tasks</td>
+        <td>50</td>
+        <td>0.498 s</td>
+        <td><strong>100.38 req/s</strong></td>
+        <td>363.06 ms</td>
+        <td>470.82 ms</td>
+        <td>476.89 ms</td>
+        <td>0</td>
+        <td><span class="badge">PASS (26/26 Tickets)</span></td>
+      </tr>
+      <tr>
+        <td><strong>Stage 5 — Dependency Outage (EXTERNAL_SYNC_FAIL=true)</strong></td>
+        <td>15 clients</td>
+        <td>90</td>
+        <td>0.77 s</td>
+        <td><strong>116.81 req/s</strong></td>
+        <td>111.71 ms</td>
+        <td>212.44 ms</td>
+        <td>263.94 ms</td>
+        <td>0</td>
+        <td><span class="badge">PASS (46 Outbox Queued)</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="bars">
+    <div class="box">
+      <h3>Latency Distribution (p50 vs p95 ms)</h3>
+      <div class="bar-row">10 Clients — p50: 47.79 ms / p95: 91.07 ms<div class="bar-bg"><div class="bar-fill" style="width: 32%;"></div></div></div>
+      <div class="bar-row">25 Clients — p50: 127.87 ms / p95: 288.78 ms<div class="bar-bg"><div class="bar-fill" style="width: 58%;"></div></div></div>
+      <div class="bar-row">50 Clients — p50: 360.47 ms / p95: 825.99 ms<div class="bar-bg"><div class="bar-fill" style="width: 88%;"></div></div></div>
+    </div>
+    <div class="box">
+      <h3>Sensor Replay Idempotency Oracle</h3>
+      <p style="font-size:0.83rem; line-height:1.5; color:#cbd5e1;">
+        Submitted <strong>50 concurrent sensor breach events</strong> (25 identical retries of <code>(burst-sensor-01, evt-burst-dup)</code> + 25 distinct event IDs).<br>
+        <strong>Observed Database State:</strong> Exactly <strong>26 tickets</strong> created. Zero duplicate tickets leaked under concurrent replay.
+      </p>
+    </div>
+    <div class="box">
+      <h3>Outage Degradation &amp; Outbox Integrity</h3>
+      <p style="font-size:0.83rem; line-height:1.5; color:#cbd5e1;">
+        With <code>EXTERNAL_SYNC_FAIL=true</code>, 100% of local booking and ticket requests succeeded (HTTP 201/200) while queueing <strong>46 durable outbox intents</strong> in <code>Pending</code> state.
+      </p>
+    </div>
+  </div>
+</body>
+</html>
